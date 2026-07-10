@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fable 5 vs GPT-5.6 徹底比較（Claude Code版）— 1枚まとめ</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  /* ===== セマンティックトークン（テーマはこの :root 値だけ差し替え）===== */
+  :root{
+    --brand:#D9774F; --brand-deep:#C15640; --brand-soft:rgba(217,119,79,.12); --brand-line:rgba(217,119,79,.30);
+    --accent:#D9774F; --accent-deep:#B24E33; --accent-soft:rgba(217,119,79,.16);
+    --bg:#F1ECE3; --paper:#FBF8F2; --ink:#2A2620; --ink-mid:#6E6557; --ink-sub:#A39A8B; --line:#E4D9C7;
+    --head:'M PLUS Rounded 1c';
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--ink);font-family:'Noto Sans JP',-apple-system,'Hiragino Sans','Yu Gothic',sans-serif;line-height:1.7;}
+  .doc{max-width:880px;margin:0 auto;background:var(--paper);box-shadow:0 0 60px rgba(0,0,0,.10);overflow:hidden;}
+  .draft-tag{background:var(--brand-deep);color:#fff;font-size:12px;font-weight:700;text-align:center;padding:7px;letter-spacing:.4px;}
+  /* hero */
+  .hero{position:relative;background:linear-gradient(160deg,var(--brand-soft) 0%,var(--bg) 70%);padding:50px 52px 44px;border-bottom:3px solid var(--brand-line);overflow:hidden;}
+  .hero .coin{position:absolute;width:160px;height:160px;border-radius:50%;background:var(--accent);opacity:.15;top:-52px;right:-36px;}
+  .hero .chan{display:inline-flex;align-items:center;gap:12px;margin-bottom:18px;}
+  .hero .chan img{width:50px;height:50px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.16);}
+  .hero .chan b{font-family:var(--head);font-weight:900;color:var(--brand-deep);font-size:17px;}
+  .hero .chan b small{display:block;font-size:11px;color:var(--ink-mid);font-weight:500;letter-spacing:.4px;}
+  .eyebrow{font-family:var(--head);font-weight:900;color:var(--brand-deep);letter-spacing:2px;font-size:13px;display:inline-flex;align-items:center;gap:9px;margin-bottom:12px;}
+  .eyebrow::before{content:'</>';background:var(--accent);color:var(--ink);border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;}
+  h1{font-family:var(--head);font-weight:900;font-size:40px;line-height:1.25;color:var(--ink);}
+  h1 .hl{color:var(--brand-deep);}
+  .hero p.sub{font-size:18px;color:var(--ink-mid);font-weight:700;margin-top:14px;max-width:660px;}
+  .meta{margin-top:20px;display:flex;gap:9px;flex-wrap:wrap;}
+  .meta span{background:var(--paper);border:1.5px solid var(--line);border-radius:999px;padding:6px 15px;font-size:13px;font-weight:700;color:var(--ink-mid);}
+  .meta span.k{background:var(--accent-soft);border-color:var(--accent);color:var(--ink);}
+  /* toc */
+  .tocbar{background:var(--brand-soft);border-bottom:1px solid var(--line);padding:16px 52px;display:flex;flex-wrap:wrap;gap:8px;}
+  .tocbar a{font-size:13px;font-weight:700;color:var(--brand-deep);text-decoration:none;background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:5px 13px;}
+  .tocbar a:hover{border-color:var(--brand);}
+  /* section */
+  section{padding:40px 52px;border-bottom:1px solid var(--line);}
+  .sec-h{display:flex;align-items:center;gap:13px;margin-bottom:22px;}
+  .sec-h .no{flex-shrink:0;width:38px;height:38px;border-radius:50%;background:var(--accent);color:var(--ink);font-family:var(--head);font-weight:900;font-size:18px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 0 var(--accent-deep);}
+  .sec-h h2{font-family:var(--head);font-weight:900;font-size:25px;color:var(--ink);}
+  p.body{font-size:16px;color:var(--ink);margin-bottom:12px;}
+  p.note{font-size:13px;color:var(--ink-mid);} .hl{color:var(--brand-deep);font-weight:700;} .hl-a{color:var(--accent-deep);font-weight:700;}
+  .lead{font-size:17px;color:var(--ink-mid);font-weight:700;}
+  /* TL;DR */
+  .tldr{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px;}
+  .tldr .t{background:var(--bg);border:1.5px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 15px;}
+  .tldr .t .k{font-family:var(--head);font-weight:900;color:var(--ink);font-size:13px;margin-bottom:6px;}
+  .tldr .t p{font-size:14px;font-weight:700;color:var(--ink);line-height:1.5;}
+  /* lists */
+  .bullets{list-style:none;} .bullets li{font-size:16px;font-weight:700;color:var(--ink);padding:10px 0 10px 30px;position:relative;border-bottom:1px solid var(--line);}
+  .bullets li::before{content:'';position:absolute;left:2px;top:50%;transform:translateY(-50%);width:11px;height:11px;border-radius:50%;background:var(--accent);}
+  .checks{list-style:none;} .checks li{font-size:15px;color:var(--ink);padding:7px 0 7px 26px;position:relative;}
+  .checks li::before{content:'✔';position:absolute;left:2px;color:var(--brand);font-weight:900;}
+  /* 2-col */
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:center;}
+  .imgbox{border:2px dashed var(--brand-line);border-radius:12px;background:var(--brand-soft);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--brand-deep);font-weight:700;text-align:center;padding:18px;min-height:170px;}
+  .imgbox .ic{font-size:28px;margin-bottom:6px;} .imgbox small{display:block;color:var(--ink-mid);font-weight:500;font-size:11.5px;margin-top:4px;}
+  /* flow */
+  .flow{display:flex;align-items:stretch;gap:0;}
+  .flow .step{flex:1;background:var(--bg);border:1.5px solid var(--line);border-top:4px solid var(--brand);border-radius:10px;padding:13px 9px;text-align:center;}
+  .flow .step .t{font-family:var(--head);font-weight:900;font-size:14px;color:var(--ink);margin-bottom:4px;}
+  .flow .step .d{font-size:11px;color:var(--ink-mid);line-height:1.4;}
+  .flow .arrow{display:flex;align-items:center;color:var(--accent);font-size:20px;font-weight:900;padding:0 4px;}
+  /* stats */
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;}
+  .stat{background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:18px;text-align:center;}
+  .stat .n{font-family:var(--head);font-size:36px;font-weight:900;color:var(--brand-deep);line-height:1;} .stat .n small{font-size:16px;}
+  .stat .u{font-size:12px;color:var(--ink-mid);margin-top:4px;} .stat .l{font-size:13px;font-weight:700;color:var(--ink);margin-top:6px;}
+  /* cards */
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;}
+  .cards .c{background:var(--bg);border:1.5px solid var(--line);border-radius:13px;padding:18px 15px;text-align:center;}
+  .cards .c.accent{border-color:var(--brand);border-width:2px;background:var(--paper);}
+  .cards .c .pin{width:38px;height:38px;border-radius:50%;background:var(--accent);color:var(--ink);font-family:var(--head);font-weight:900;font-size:17px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;box-shadow:0 2px 0 var(--accent-deep);}
+  .cards .c h3{font-family:var(--head);font-weight:900;font-size:16px;color:var(--ink);margin-bottom:6px;} .cards .c p{font-size:13px;color:var(--ink-mid);line-height:1.55;}
+  .cards .c .mark{font-size:11px;font-weight:700;color:var(--brand-deep);margin-top:7px;}
+  /* before/after */
+  .ba{display:flex;align-items:stretch;gap:14px;}
+  .ba .panel{flex:1;background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:18px;}
+  .ba .panel.after{border-color:var(--brand);border-width:2px;background:var(--paper);}
+  .ba .panel .tag{font-family:var(--head);font-weight:900;font-size:12px;border-radius:999px;padding:3px 11px;display:inline-block;margin-bottom:9px;}
+  .ba .panel.before .tag{background:var(--line);color:var(--ink-mid);} .ba .panel.after .tag{background:var(--brand);color:#fff;}
+  .ba .panel ul{list-style:none;} .ba .panel li{font-size:14px;color:var(--ink);padding:5px 0 5px 20px;position:relative;}
+  .ba .panel.before li::before{content:'×';position:absolute;left:0;color:var(--ink-sub);font-weight:900;}
+  .ba .panel.after li::before{content:'○';position:absolute;left:0;color:var(--brand);font-weight:900;}
+  .ba .mid{display:flex;align-items:center;color:var(--accent);font-size:26px;font-weight:900;}
+  /* table */
+  table.cmp{width:100%;border-collapse:separate;border-spacing:0;font-size:14px;border:1.5px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:14px;}
+  table.cmp th,table.cmp td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--line);}
+  table.cmp thead th{background:var(--ink);color:#fff;font-family:var(--head);font-weight:700;}
+  table.cmp thead th:first-child{background:var(--brand-deep);}
+  table.cmp tbody tr:last-child td{border-bottom:none;} table.cmp td:first-child{font-weight:700;}
+  table.cmp .yes{color:var(--brand-deep);font-weight:900;} table.cmp .no{color:var(--ink-mid);}
+  /* price */
+  .price{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;}
+  .price .p{background:var(--bg);border:1.5px solid var(--line);border-radius:13px;padding:18px 15px;text-align:center;}
+  .price .p.best{border:2px solid var(--accent);position:relative;background:var(--paper);}
+  .price .p.best::before{content:'人気';position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--accent);color:var(--ink);font-family:var(--head);font-weight:900;font-size:11px;border-radius:999px;padding:2px 12px;}
+  .price .p .name{font-family:var(--head);font-weight:900;font-size:15px;color:var(--ink);}
+  .price .p .amt{font-family:var(--head);font-size:28px;font-weight:900;color:var(--brand-deep);margin:6px 0;} .price .p .amt small{font-size:12px;color:var(--ink-mid);}
+  .price .p ul{list-style:none;text-align:left;margin-top:8px;} .price .p li{font-size:12px;color:var(--ink-mid);padding:4px 0 4px 18px;position:relative;}
+  .price .p li::before{content:'✔';position:absolute;left:0;color:var(--brand);}
+  /* feature grid */
+  .feat{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;}
+  .feat .f{background:var(--bg);border:1.5px solid var(--line);border-radius:11px;padding:13px;text-align:center;}
+  .feat .f .ic{width:34px;height:34px;border-radius:9px;background:var(--brand-soft);color:var(--brand-deep);font-family:var(--head);font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto 7px;}
+  .feat .f b{font-size:13px;color:var(--ink);display:block;} .feat .f span{font-size:11px;color:var(--ink-mid);}
+  /* map */
+  .map{list-style:none;} .map li{display:flex;align-items:center;gap:12px;font-size:15px;font-weight:600;color:var(--ink);padding:11px 14px;margin-bottom:9px;background:var(--bg);border:1.5px solid var(--line);border-left:4px solid var(--brand);border-radius:11px;}
+  .map li .q{flex:1;} .map li .ar{color:var(--accent);font-weight:900;} .map li .a{flex:1.3;color:var(--brand-deep);font-weight:700;}
+  /* steps */
+  .steps{list-style:none;} .steps li{font-size:15px;font-weight:600;color:var(--ink);padding:11px 14px 11px 50px;position:relative;margin-bottom:9px;background:var(--bg);border:1.5px solid var(--line);border-left:4px solid var(--brand);border-radius:11px;}
+  .steps li .n{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:27px;height:27px;background:var(--accent);color:var(--ink);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--head);font-weight:900;font-size:13px;box-shadow:0 2px 0 var(--accent-deep);}
+  /* prompt */
+  .prompt{font-family:ui-monospace,Menlo,monospace;font-size:13px;background:var(--ink);color:#ECECEA;border-radius:10px;padding:14px 16px;line-height:1.65;margin-top:10px;}
+  .prompt .c{color:var(--accent);} .prompt .cm{color:var(--ink-sub);}
+  /* cycle */
+  .cycle{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;}
+  .cycle .node{width:120px;height:120px;border-radius:50%;background:var(--brand-soft);border:2px solid var(--brand);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8px;}
+  .cycle .node b{font-family:var(--head);font-size:14px;color:var(--brand-deep);} .cycle .node span{font-size:10.5px;color:var(--ink-mid);}
+  .cycle .ar{color:var(--accent);font-size:22px;font-weight:900;}
+  /* faq */
+  .faq .qa{background:var(--bg);border:1.5px solid var(--line);border-radius:11px;padding:13px 16px;margin-bottom:9px;}
+  .faq .qa .q{font-family:var(--head);font-weight:900;font-size:15px;color:var(--brand-deep);} .faq .qa .q::before{content:'Q. ';color:var(--accent-deep);}
+  .faq .qa .a{font-size:14px;color:var(--ink-mid);margin-top:4px;} .faq .qa .a::before{content:'A. ';color:var(--ink);font-weight:700;}
+  /* timeline */
+  .timeline .row{display:flex;gap:14px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line);}
+  .timeline .tbadge{flex-shrink:0;background:var(--brand);color:#fff;font-family:var(--head);font-weight:900;border-radius:7px;padding:5px 12px;font-size:13px;min-width:84px;text-align:center;}
+  .timeline .row b{font-family:var(--head);font-size:15px;color:var(--ink);} .timeline .row p{font-size:13px;color:var(--ink-mid);margin-top:2px;}
+  /* note box */
+  .box{background:var(--accent-soft);border:1.5px solid var(--accent);border-radius:12px;padding:18px 20px;}
+  .box h3{font-family:var(--head);font-weight:900;color:var(--accent-deep);font-size:16px;margin-bottom:8px;}
+  .box ul{margin-left:18px;font-size:14px;color:var(--ink);} .box li{margin-bottom:5px;}
+  /* footer */
+  footer{background:var(--ink);color:#EBEBE7;padding:36px 52px;}
+  footer .frow{display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;}
+  footer .lg{display:flex;align-items:center;gap:11px;} footer .lg img{width:44px;height:44px;border-radius:50%;}
+  footer .lg b{font-family:var(--head);font-weight:900;color:#fff;font-size:15px;} footer .lg b small{display:block;font-size:11px;color:#9C9C96;font-weight:500;}
+  footer .cta{background:var(--accent);color:var(--ink);border-radius:999px;padding:11px 24px;font-family:var(--head);font-weight:900;font-size:14px;text-decoration:none;display:inline-flex;align-items:center;gap:7px;}
+  footer .src{font-size:12px;color:#9C9C96;margin-top:16px;line-height:1.8;} footer .src a{color:var(--accent);text-decoration:none;}
+  .secsub{font-family:var(--head);font-weight:900;font-size:15px;color:var(--ink);margin:18px 0 10px;}
+
+  /* ===== 出力比較チャットUI ===== */
+  .uicompare{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:4px 0 6px;}
+  .chatwin{border-radius:14px;overflow:hidden;box-shadow:0 6px 20px rgba(16,24,40,.16);border:1px solid rgba(0,0,0,.06);display:flex;flex-direction:column;text-align:left;}
+  .chatwin .bar{display:flex;align-items:center;gap:9px;padding:9px 12px;font-family:var(--head);font-weight:900;font-size:13px;}
+  .chatwin .dots3{display:flex;gap:5px;margin-right:4px;}
+  .chatwin .dots3 i{width:9px;height:9px;border-radius:50%;display:block;}
+  .chatwin .dots3 i.r{background:#ff5f57;} .chatwin .dots3 i.y{background:#febc2e;} .chatwin .dots3 i.g{background:#28c840;}
+  .chatwin .body{padding:12px 13px 14px;flex:1;display:flex;flex-direction:column;gap:9px;}
+  .chatwin .umsg{align-self:flex-end;max-width:92%;border-radius:12px 12px 3px 12px;padding:7px 11px;font-size:12px;font-weight:700;line-height:1.5;}
+  .chatwin .arow{display:flex;align-items:center;gap:8px;}
+  .chatwin .av{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;line-height:1;}
+  .chatwin .aname{font-family:var(--head);font-weight:900;font-size:12px;}
+  .chatwin .tag{font-size:10px;font-weight:900;border-radius:999px;padding:2px 10px;}
+  .chatwin .amsg{font-size:12px;line-height:1.6;}
+  .chatwin.claude{background:#F4EFE7;}
+  .chatwin.claude .bar{background:#EAE2D5;color:#3A2E22;}
+  .chatwin.claude .umsg{background:#E3D6C3;color:#3A2E22;}
+  .chatwin.claude .av{background:#D97757;color:#fff;}
+  .chatwin.claude .aname{color:#B4522F;}
+  .chatwin.claude .amsg{color:#2A2620;} .chatwin.claude .amsg b{color:#B4522F;}
+  .chatwin.claude .tag{background:#D97757;color:#fff;}
+  .chatwin.gpt{background:#FFFFFF;}
+  .chatwin.gpt .bar{background:#F2F3F5;color:#111827;}
+  .chatwin.gpt .umsg{background:#E7E7E9;color:#111827;}
+  .chatwin.gpt .av{background:#0D0D0D;color:#fff;}
+  .chatwin.gpt .aname{color:#0F7B6C;}
+  .chatwin.gpt .amsg{color:#1F2328;} .chatwin.gpt .amsg b{color:#0F7B6C;}
+  .chatwin.gpt .tag{background:#10A37F;color:#fff;}
+  .uihint{font-size:13px;color:var(--ink-mid);margin-top:14px;text-align:center;max-width:1000px;}
+  .uihint b{color:var(--brand-deep);}
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <div class="hero">
+    <span class="coin"></span>
+    <div class="chan"><img src="data:image/jpeg;base64,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" alt="ClaudeCodeチャンネル"><b>ClaudeCodeチャンネル<small>Claude Code を学ぶ</small></b></div>
+    <div class="eyebrow">2大モデル徹底比較</div>
+    <h1><span class="hl">Fable 5</span> vs GPT-5.6<br>どっちが本当に優秀か？</h1>
+    <p class="sub">ベンチマーク・コスパ・スピード・設計思想・effort——5つの物差しで、逃げずに勝敗を決める。1ページで全体像・比較表・使い方・使い分けまで詰め込みました。</p>
+    <div class="meta"><span class="k">2026年7月版</span><span>初心者向け</span><span>所要12分</span><span>比較表・図解つき</span><span>出典つき</span></div>
+  </div>
+
+  <div class="tocbar">
+    <a href="#s1">① 2大モデルの基本</a><a href="#s2">② ベンチ</a><a href="#s3">③ コスパ・速度</a><a href="#s4">④ 設計思想・effort</a>
+    <a href="#s5">⑤ 出力を並べる</a><a href="#s6">⑥ 結論</a><a href="#s7">⑦ 使い方</a><a href="#s8">⑧ FAQ・注意</a>
+  </div>
+
+  <section>
+    <div class="sec-h"><div class="no">!</div><h2>まず3行で</h2></div>
+    <div class="tldr">
+      <div class="t"><div class="k">POINT 1</div><p>生スコア・一発精度・難所は <span class="hl">Fable 5</span> が王者（CursorBench 70.5%・首位）</p></div>
+      <div class="t"><div class="k">POINT 2</div><p>コスパ・速度・エージェント量産は <span class="hl-a">GPT-5.6 Sol</span>（同じ賢さを約1/3の実費で）</p></div>
+      <div class="t"><div class="k">POINT 3</div><p>優劣は観点で分かれる。難所は Fable 5、量とコストは GPT-5.6。Claude Code なら“使い分け”が最強</p></div>
+    </div>
+    <div class="secsub">この資料で殴り合わせる「5つの物差し」</div>
+    <div class="feat">
+      <div class="f"><div class="ic">①</div><b>ベンチ</b><span>賢さの物差し</span></div>
+      <div class="f"><div class="ic">②</div><b>コスパ</b><span>同じ賢さをいくらで</span></div>
+      <div class="f"><div class="ic">③</div><b>スピード</b><span>速さ・軽さ</span></div>
+      <div class="f"><div class="ic">④</div><b>設計思想</b><span>どう使わせたいか</span></div>
+    </div>
+  </section>
+
+  <section id="s1">
+    <div class="sec-h"><div class="no">1</div><h2>2大モデルの基本 — 性格が違う</h2></div>
+    <p class="body">Fable 5 と GPT-5.6 は、優劣というより <span class="hl">性格が逆</span>です。Fable 5 は「精度をとことん高く、一発で正解に」の“賢い頭脳”。GPT-5.6 は「同じ賢さを、もっと安く速く大量に」の“効率エンジン”。だから勝敗は観点ごとに分かれます。</p>
+    <div class="ba">
+      <div class="panel after"><span class="tag">Fable 5</span><ul><li>一流の専門家に難問を1つ相談</li><li>じっくり考え精度を取る</li><li>コスト・時間はかかりがち</li></ul></div>
+      <div class="mid">vs</div>
+      <div class="panel after"><span class="tag" style="background:var(--accent-deep);">GPT-5.6</span><ul><li>優秀なスタッフを安く何人も雇う</li><li>短く考え短く答える</li><li>本物のコード修正は一歩譲る</li></ul></div>
+    </div>
+    <div class="secsub">プロフィール</div>
+    <div class="cards">
+      <div class="c accent"><div class="pin">F</div><h3>Claude Fable 5</h3><p>Anthropic 最上位「Mythos クラス」。生スコアの王者。API は入力$10／出力$50。</p></div>
+      <div class="c"><div class="pin">S</div><h3>GPT-5.6 Sol</h3><p>OpenAI の旗艦。Fable 5 と正面勝負。API は入力$5／出力$30（約半額）。</p></div>
+      <div class="c"><div class="pin">TL</div><h3>Terra / Luna</h3><p>日常は Terra（$2.50/$15）、大量処理は Luna（$1/$6）。3モデルとも約105万トークン。</p></div>
+    </div>
+  </section>
+
+  <section id="s2">
+    <div class="sec-h"><div class="no">2</div><h2>ベンチマークで殴り合う</h2></div>
+    <p class="body">同じベンチでも測っているものが違うので、勝者が入れ替わります。数字は公式・第三者評価で報告された Sol と Fable 5 の値です。</p>
+    <table class="cmp">
+      <thead><tr><th>ベンチマーク</th><th>Fable 5</th><th>GPT-5.6 Sol</th><th>優勢</th></tr></thead>
+      <tbody>
+        <tr><td>Intelligence Index v4.1</td><td class="yes">59.9</td><td>58.9</td><td>Fable 5（僅差）</td></tr>
+        <tr><td>Coding Agent Index v1.1</td><td>77.2</td><td class="yes">80</td><td>GPT-5.6</td></tr>
+        <tr><td>Agents' Last Exam</td><td>40.5%</td><td class="yes">52.7%</td><td>GPT-5.6</td></tr>
+        <tr><td>SWE-Bench Pro</td><td class="yes">約80%</td><td>64.6%</td><td>Fable 5</td></tr>
+        <tr><td>CursorBench</td><td class="yes">70.5%</td><td>67.2%</td><td>Fable 5</td></tr>
+        <tr><td>Terminal-Bench 2.1</td><td>最上位級</td><td>88.8%</td><td>ほぼ拮抗</td></tr>
+      </tbody>
+    </table>
+    <p class="note">出典：Artificial Analysis／Cursor 公式 evals ほか。版・条件で数値は変動します。</p>
+    <div class="secsub">読み解き — 得意が“くっきり”分かれる</div>
+    <div class="ba">
+      <div class="panel after"><span class="tag">Fable 5 が勝つ</span><ul><li>本物のコード修正（SWE-Bench Pro 約80%）</li><li>曖昧な現場作業（CursorBench 70.5%）</li></ul></div>
+      <div class="mid">＋</div>
+      <div class="panel after"><span class="tag" style="background:var(--accent-deep);">GPT-5.6 が勝つ</span><ul><li>自律エージェント（Agents' Last Exam 52.7%）</li><li>エージェント的コーディング（Coding Agent 80）</li></ul></div>
+    </div>
+    <div class="secsub">数字を鵜呑みにしない</div>
+    <div class="box"><h3>⚠️ ベンチには“ノイズ”が混ざる</h3>
+      <ul>
+        <li>OpenAI「Separating signal from noise」→ ベンチの“失敗”の多くは、実はテスト側の欠陥だった</li>
+        <li>Cursor「報酬ハッキング」→ 高性能モデルほど“ズル”（ネットやGit履歴から答えを取得）をしがち</li>
+        <li>「ベンチ1位＝あなたの仕事で1位」ではない。最後は同じ仕事を両方に投げて見比べる</li>
+      </ul></div>
+  </section>
+
+  <section id="s3">
+    <div class="sec-h"><div class="no">3</div><h2>コスパ・スピードで殴り合う</h2></div>
+    <div class="secsub">料金（API・1Mトークン）</div>
+    <table class="cmp">
+      <thead><tr><th>モデル</th><th>入力</th><th>出力</th><th>ひとこと</th></tr></thead>
+      <tbody>
+        <tr><td>Claude Fable 5</td><td>$10</td><td>$50</td><td>最上位ゆえ高い</td></tr>
+        <tr><td>GPT-5.6 Sol</td><td class="yes">$5</td><td class="yes">$30</td><td>Fable 5 の約半額</td></tr>
+        <tr><td>GPT-5.6 Terra</td><td class="yes">$2.50</td><td class="yes">$15</td><td>日常運用向け</td></tr>
+        <tr><td>GPT-5.6 Luna</td><td class="yes">$1</td><td class="yes">$6</td><td>大量処理向け</td></tr>
+      </tbody>
+    </table>
+    <div class="stats" style="margin-top:8px;">
+      <div class="stat"><div class="n">約1/2</div><div class="u">定価ベース</div><div class="l">Sol の単価 vs Fable 5</div></div>
+      <div class="stat"><div class="n">約1/3</div><div class="u">実費ベース</div><div class="l">1タスクの実費（AA計測）</div></div>
+      <div class="stat"><div class="n">半分<small>以下</small></div><div class="u">出力トークン・時間</div><div class="l">Sol は短く答え、速い</div></div>
+    </div>
+    <p class="body" style="margin-top:14px;">GPT-5.6 は1つの答えを短いトークンで返すので、定価は約半額でも実費はさらに開き、<span class="hl-a">同じ賢さを約3分の1</span>で使えます。速さも「トークンの少なさ」がそのまま効きます。</p>
+    <div class="secsub">Fable 5 も“頭脳だけ”なら化ける</div>
+    <div class="stats" style="grid-template-columns:1fr 1fr;">
+      <div class="stat"><div class="n">92<small>%</small></div><div class="u">の性能を 63% のコストで</div><div class="l">Sonnet 5＋Fable 5 アドバイザー</div></div>
+      <div class="stat"><div class="n">96<small>%</small></div><div class="u">の性能を 46% のコストで</div><div class="l">Fable 5 指揮＋Sonnet 5 ワーカー</div></div>
+    </div>
+    <p class="note" style="margin-top:10px;">「全部やらせる」と高いが、難所だけに絞れば単体の9割前後を半分〜6割ほどのコストで。→ 使い分けの伏線</p>
+  </section>
+
+  <section id="s4">
+    <div class="sec-h"><div class="no">4</div><h2>設計思想と effort の違い</h2></div>
+    <p class="body">数字の裏にある“考え方”の違いが、いちばん面白いところです。<span class="hl">Fable 5＝「未知を見つける相談相手」</span>（成果の質は“自分が何を知らないか”を明確にできるかで決まる、という思想）。<span class="hl-a">GPT-5.6＝「野心に合わせて広がる効率エンジン」</span>（賢さを保ったまま規模とコストを詰める思想）。</p>
+    <table class="cmp">
+      <thead><tr><th>観点</th><th>Fable 5</th><th>GPT-5.6 Sol</th></tr></thead>
+      <tbody>
+        <tr><td>ひとことで</td><td class="yes">賢い頭脳・相談相手</td><td>効率のいい工場</td></tr>
+        <tr><td>力の入れどころ</td><td>一発の精度・未知の発見</td><td class="yes">コスト効率・規模・速度</td></tr>
+        <tr><td>得意な渡し方</td><td>難問を1つ、じっくり</td><td>大量の作業を、まとめて</td></tr>
+        <tr><td>向く役割</td><td>計画・レビュー・難所判断</td><td>実行・量産・自律エージェント</td></tr>
+      </tbody>
+    </table>
+    <div class="secsub">effort（本気度）— もう1つの隠れたレバー</div>
+    <div class="cards" style="grid-template-columns:1fr 1fr;">
+      <div class="c accent"><div class="pin">G</div><h3>GPT-5.6</h3><p>推論の強さを6段階で刻む<br>none / low / medium / high / xhigh / max</p></div>
+      <div class="c"><div class="pin">F</div><h3>Fable 5（Claude）</h3><p>「モデル選択」×「effort level」の2軸。effort↑で約7倍のトークンで確信度UP。</p></div>
+    </div>
+    <p class="note" style="margin-top:10px;">上げれば「深く・遅く・高コスト」、下げれば「速く・安く・浅い」。難問は高 effort、確認は低 effort でどちらも化ける。</p>
+  </section>
+
+  <section id="s5">
+    <div class="sec-h"><div class="no">5</div><h2>実際の出力を並べてみる（5分野・再現UI）</h2></div>
+    <p class="body">同じ依頼を Claude（Fable 5）と ChatGPT（GPT-5.6）の両方に投げると、“らしさ”がくっきり出ます。分野を変えた5例を並べます（応答傾向をもとにした再現UIイメージ。実際の出力は毎回変わります）。</p>
+    <div class="secsub">① 文章：料理教室のLP構成案</div>
+    <div class="uicompare"><div class="chatwin claude"><div class="bar"><span class="dots3"><i class="r"></i><i class="y"></i><i class="g"></i></span>Claude</div><div class="body"><div class="umsg">初心者向けに、料理教室のLPの構成案を作って</div><div class="arow"><span class="av">✳</span><span class="aname">Claude</span><span class="tag">Fable 5</span></div><div class="amsg">作る前に3つ確認を。①ゴールは体験予約？メール登録？ ②客層は？ ③既にある強みは？<br>仮置きで7ブロック構成を提案します。<br><b>※よくある失敗</b>：教室の“特徴”から書き始めること。読者は“自分がどう変われるか”を先に知りたい。</div></div></div><div class="chatwin gpt"><div class="bar"><span class="dots3"><i class="r"></i><i class="y"></i><i class="g"></i></span>ChatGPT</div><div class="body"><div class="umsg">初心者向けに、料理教室のLPの構成案を作って</div><div class="arow"><span class="av">✦</span><span class="aname">ChatGPT</span><span class="tag">GPT-5.6 Sol</span></div><div class="amsg">LP構成案です。上から置けば形に。<br>①ヒーロー＋予約ボタン ②悩み共感3つ ③選ばれる理由 ④コース(表) ⑤生徒の声 ⑥講師紹介 ⑦FAQ→再予約<br><b>このまま画像も10枚作りますか？</b></div></div></div></div>
+    <div class="secsub">② 調べ物：新NISAをやさしく</div>
+    <div class="uicompare"><div class="chatwin claude"><div class="bar"><span class="dots3"><i class="r"></i><i class="y"></i><i class="g"></i></span>Claude</div><div class="body"><div class="umsg">新NISAって何？投資が初めての人向けにやさしく教えて</div><div class="arow"><span class="av">✳</span><span class="aname">Claude</span><span class="tag">Fable 5</span></div><div class="amsg">まず確認を。目的は“制度を理解”ですか、“始め方を知る”ですか。<br>やさしく噛み砕きますが、<b>「必ず得する」という話には注意</b>——元本割れの可能性は残ります。<br>家計の状況を教えてもらえれば、無理のない範囲も一緒に考えます。</div></div></div><div class="chatwin gpt"><div class="bar"><span class="dots3"><i class="r"></i><i class="y"></i><i class="g"></i></span>ChatGPT</div><div class="body"><div class="umsg">新NISAって何？投資が初めての人向けにやさしく教えて</div><div class="arow"><span class="av">✦</span><span class="aname">ChatGPT</span><span class="tag">GPT-5.6 Sol</span></div><div class="amsg">新NISAをやさしくまとめます。<br>①税金がかからない投資 ②年間の枠と“つみたて/成長” ③少額から自動積立OK ④売っても枠が翌年復活<br>始め方は「口座を開く→積立設定」の2ステップ。<b>注意点も出しますか？</b></div></div></div></div>
+    <div class="secsub">③ アイデア出し：カフェのキャッチコピー</div>
+    <div class="uicompare"><div class="chatwin claude"><div class="bar"><span class="dots3"><i class="r"></i><i class="y"></i><i class="g"></i></span>Claude</div><div class="body"><div class="umsg">新しくオープンするカフェのキャッチコピーを考えて</div><div class="arow"><span class="av">✳</span><span class="aname">Claude</span><span class="tag">Fable 5</span></div><div class="amsg">良いコピーは“誰に何を約束するか”で決まります。<br>客層は？（仕事の合間／子連れ／一人時間）雰囲気は？<br>仮に“一人時間”向けなら3案を先に。方向性を選べば、そのトーンで10案に広げます。</div></div></div><div class="chatwin gpt"><div class="bar"><span class="dots3"><i class="r"></i><i class="y"></i><i class="g"></i></span>ChatGPT</div><div class="body"><div class="umsg">新しくオープンするカフェのキャッチコピーを考えて</div><div class="arow"><span class="av">✦</span><span class="aname">ChatGPT</span><span class="tag">GPT-5.6 Sol</span></div><div class="amsg">キャッチコピー10案です。<br>①ひと息の、いちばんいい場所。②今日のごほうび、ここに。③静かに満ちる時間。…（計10案）<br>刺さるものを教えてくれれば、<b>そのトーンで20案に増やします。</b></div></div></div></div>
+    <div class="secsub">④ 学び直し：複利をやさしく説明</div>
+    <div class="uicompare"><div class="chatwin claude"><div class="bar"><span class="dots3"><i class="r"></i><i class="y"></i><i class="g"></i></span>Claude</div><div class="body"><div class="umsg">「複利」を中学生にも分かるように説明して</div><div class="arow"><span class="av">✳</span><span class="aname">Claude</span><span class="tag">Fable 5</span></div><div class="amsg">説明の前に1つ。<b>“計算式まで”か“イメージだけ”か</b>で変えますね。<br>イメージ重視なら「雪だるま」の比喩で。<br>最後に理解できたか、1問だけクイズを出させてください。</div></div></div><div class="chatwin gpt"><div class="bar"><span class="dots3"><i class="r"></i><i class="y"></i><i class="g"></i></span>ChatGPT</div><div class="body"><div class="umsg">「複利」を中学生にも分かるように説明して</div><div class="arow"><span class="av">✦</span><span class="aname">ChatGPT</span><span class="tag">GPT-5.6 Sol</span></div><div class="amsg">複利＝“増えた分にもさらに利息がつく”しくみ。<br>例：100円→110円→次の年は121円…と雪だるま式。<br>単利との違いは「利息が利息を生むか」。<b>図にもできますが要りますか？</b></div></div></div></div>
+    <div class="secsub">⑤ 段取り：引っ越しやることリスト</div>
+    <div class="uicompare"><div class="chatwin claude"><div class="bar"><span class="dots3"><i class="r"></i><i class="y"></i><i class="g"></i></span>Claude</div><div class="body"><div class="umsg">引っ越しの段取りを、やることリストにして</div><div class="arow"><span class="av">✳</span><span class="aname">Claude</span><span class="tag">Fable 5</span></div><div class="amsg">抜けを防ぐため2つ確認を。①何週間後？ ②単身か家族か（手続き量が変わる）。<br>仮に1ヶ月後・単身なら4週前→当日の順で。<br><b>忘れがちな“住所変更○件”は別枠で出します。</b></div></div></div><div class="chatwin gpt"><div class="bar"><span class="dots3"><i class="r"></i><i class="y"></i><i class="g"></i></span>ChatGPT</div><div class="body"><div class="umsg">引っ越しの段取りを、やることリストにして</div><div class="arow"><span class="av">✦</span><span class="aname">ChatGPT</span><span class="tag">GPT-5.6 Sol</span></div><div class="amsg">引っ越しやることリストです。<br>【3週前】業者予約／不用品処分【2週前】転出届／ライフライン【1週前】荷造り【当日】掃除／メーター確認【後】転入届／住所変更<br><b>印刷用に表でも出せます。</b></div></div></div></div>
+    <div class="secsub">5分野で見えた“らしさ”の違い</div>
+    <div class="ba">
+      <div class="panel after"><span class="tag">Claude / Fable 5</span><ul><li>作る前に“あなたの未知”を確認しにくる</li><li>「よくある失敗」「注意点」を自分から添える</li><li>精度は高いが、ひと手間かかる</li></ul></div>
+      <div class="mid">vs</div>
+      <div class="panel after"><span class="tag" style="background:var(--accent-deep);">ChatGPT / GPT-5.6</span><ul><li>完成品を速く、そのまま渡す</li><li>次の一手（画像・表・増量）まで提案</li><li>勢いよく前へ進める</li></ul></div>
+    </div>
+  </section>
+
+  <section id="s6">
+    <div class="sec-h"><div class="no">6</div><h2>結論 — どっちが優秀か、決める</h2></div>
+    <table class="cmp">
+      <thead><tr><th>物差し</th><th>勝者</th></tr></thead>
+      <tbody>
+        <tr><td>総合の賢さ（Intelligence Index）</td><td>ほぼ引き分け（Fable 5 が僅差）</td></tr>
+        <tr><td>一発の精度・本物のコード修正</td><td class="yes">Fable 5</td></tr>
+        <tr><td>自律エージェントの総合力</td><td class="yes">GPT-5.6 Sol</td></tr>
+        <tr><td>コスパ（同じ賢さの実費）</td><td class="yes">GPT-5.6 Sol</td></tr>
+        <tr><td>スピード・軽さ</td><td class="yes">GPT-5.6 Sol</td></tr>
+        <tr><td>設計思想の役割</td><td>頭脳＝Fable 5 ／ 工場＝GPT-5.6</td></tr>
+      </tbody>
+    </table>
+    <div class="secsub">1つだけ選ぶなら</div>
+    <div class="cards">
+      <div class="c accent"><div class="pin">◎</div><h3>多くの人</h3><p>GPT-5.6 Sol（迷ったら Terra）。同じ賢さを約1/3で速く。日常の主力に。</p></div>
+      <div class="c"><div class="pin">★</div><h3>精度が命</h3><p>Fable 5。難所のバグ・複雑な設計判断に。“難所だけ”に絞る。</p></div>
+      <div class="c"><div class="pin">◆</div><h3>最強</h3><p>使い分け。難所は Fable 5、量とコストは GPT-5.6。</p></div>
+    </div>
+    <p class="note" style="margin-top:10px;">Fable 5 に計画とレビュー、実行は GPT-5.6／Codex。精度と財布の両方を守る二段構え。</p>
+  </section>
+
+  <section id="s7">
+    <div class="sec-h"><div class="no">7</div><h2>使い方（初心者基準）— 両方に投げて見比べる</h2></div>
+    <p class="body">むずかしい設定はいりません。<span class="hl">同じ頼みごとを両方に投げて、出力の「深さ・速さ・語り口・過不足」を見比べる</span>。これを何回かやると、自分だけの選び方の基準ができます。</p>
+    <ul class="map">
+      <li><span class="q">「文章を整えたい」</span><span class="ar">→</span><span class="a">「このメールを丁寧な文に。3案ください」</span></li>
+      <li><span class="q">「調べ物に時間がかかる」</span><span class="ar">→</span><span class="a">「話題のAIツールを調べて表に。出典も」</span></li>
+      <li><span class="q">「資料づくりが大変」</span><span class="ar">→</span><span class="a">「初心者向け10枚スライドの構成に整えて」</span></li>
+    </ul>
+    <div class="secsub">どちらでも安定する“ゴール宣言”の型</div>
+    <div class="prompt"><span class="cm"># そのままコピペ</span><br><span class="c">目標：</span>自分の教室を紹介する1枚のLPの構成案を作る<br><span class="c">成功条件：</span>スマホで崩れない前提／申込ボタンがある／30秒で読める<br><span class="c">制約：</span>落ち着いた雰囲気、専門用語は避ける、写真は3枚想定<br><span class="c">まず不明点があれば質問して。OKしたら構成案を出して。</span></div>
+    <div class="secsub">使い分け運用（頭脳と手足）</div>
+    <div class="flow">
+      <div class="step"><div class="t">① 考えさせる</div><div class="d">Fable 5 に計画</div></div><div class="arrow">→</div>
+      <div class="step"><div class="t">② 動かさせる</div><div class="d">GPT-5.6／Codex に実装</div></div><div class="arrow">→</div>
+      <div class="step"><div class="t">③ 検収させる</div><div class="d">Fable 5 にレビュー</div></div><div class="arrow">↻</div>
+      <div class="step"><div class="t">④ もう一周</div><div class="d">差し戻しで更新</div></div>
+    </div>
+    <p class="note" style="margin-top:10px;">🎁 100本の比較用プロンプトほか、そのまま使えるプレゼントはページ下部から受け取れます（全文はプレゼントキットに収録）。</p>
+  </section>
+
+  <section id="s8">
+    <div class="sec-h"><div class="no">8</div><h2>FAQ・注意点</h2></div>
+    <div class="faq">
+      <div class="qa"><div class="q">結局、賢いのはどっち？</div><div class="a">総合はほぼ互角（Fable 5 が僅差で上）。「本物のコード修正」は Fable 5、「自律エージェント」は GPT-5.6 と得意が分かれます。</div></div>
+      <div class="qa"><div class="q">安く済ませたいなら？</div><div class="a">GPT-5.6。同じ賢さを実費で約3分の1。日常は Terra、量は Luna で十分です。</div></div>
+      <div class="qa"><div class="q">Fable 5 は高いだけ？</div><div class="a">いいえ。「難所の判断・計画・レビューだけ」に絞ると、少ない呼び出しで大きなリターンが出ます。</div></div>
+      <div class="qa"><div class="q">片方だけ契約するなら？</div><div class="a">迷う人は GPT-5.6（無料でも Terra が使える）を主力に。精度が命の仕事で Fable 5 を単発で足すのが現実的。</div></div>
+    </div>
+    <div class="secsub">数字を読むときの注意</div>
+    <div class="box"><h3>⚠️ この資料の読み方</h3>
+      <ul><li>数値・価格は2026年7月時点で確認できた範囲。ベンチは版・条件で動くため“傾向”として見る</li>
+      <li>「必ず勝てる」「絶対こっち」等の断定・保証はしない。最後は自分の仕事で試して選ぶ</li>
+      <li>本資料は非公式まとめ。最終確認は各公式で</li></ul></div>
+  </section>
+
+  <footer>
+    <div class="frow">
+      <div class="lg"><img src="data:image/jpeg;base64,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" alt="ClaudeCodeチャンネル"><b>ClaudeCodeチャンネル<small>Claude Code を学ぶ</small></b></div>
+      <a class="cta" href="https://fuuuuuuma.github.io/fable5-vs-gpt-5-6-claudecode-ja/present.html">🎁 プレゼントを受け取る</a>
+    </div>
+    <p class="src">出典：Artificial Analysis <a href="https://artificialanalysis.ai/">artificialanalysis.ai</a> ／ Cursor 公式 evals <a href="https://cursor.com/ja/evals">cursor.com/ja/evals</a> ／ Anthropic・OpenAI 公式ブログ<br>
+      ※ 本資料は非公式まとめ。全文（GitHub 公開）・スライドは概要欄から。数値・価格は2026年7月時点で確認できた範囲のもので、更新により変わることがあります。</p>
+  </footer>
+</div>
+</body>
+</html>
